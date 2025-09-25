@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    id("kotlin-parcelize") apply false // Added for Parcelize support
+    id("kotlin-parcelize") apply true // Added for Parcelize support
 }
 
 android {
@@ -34,6 +34,9 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    buildFeatures {
+        dataBinding = true // Changed from viewBinding to dataBinding
+    }
 }
 
 dependencies {
@@ -51,6 +54,7 @@ dependencies {
     implementation(libs.retrofit.converter.gson)
     implementation(libs.coil)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.androidx.swiperefreshlayout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
