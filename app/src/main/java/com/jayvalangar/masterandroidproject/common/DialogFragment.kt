@@ -15,9 +15,15 @@ import androidx.fragment.app.Fragment
 import com.jayvalangar.masterandroidproject.R
 import com.jayvalangar.masterandroidproject.databinding.FragmentDialogBinding
 
+
+// This is a popup screen that shows messages or options to the user.
+// It’s a special fragment that acts like a dialog box.
 class CommonDialog : androidx.fragment.app.DialogFragment() {
 
+    // A tool to connect the layout file, set to null when not needed.
     private var _binding: FragmentDialogBinding? = null
+
+    // A safe way to use the layout tool, only when the screen is active.
     private val binding get() = _binding!!
     private var onOkClickListener: (() -> Unit)? = null
     private var onCancelClickListener: (() -> Unit)? = null

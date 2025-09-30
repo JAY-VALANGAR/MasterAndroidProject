@@ -22,16 +22,47 @@ import com.jayvalangar.masterandroidproject.viewmodel.comment.CommentViewModelFa
 import com.jayvalangar.masterandroidproject.viewmodel.employee.EmployeeViewModel
 import com.jayvalangar.masterandroidproject.viewmodel.employee.EmployeeViewModelFactory
 
+
+// This is a small screen inside the app to show one employee’s details and comments.
 class EmployeeDetailFragment : Fragment() {
 
+    // A tool to connect the layout file, set to null when not needed.
+    //--------------------------------------------------------------------------
     private var _binding: FragmentEmployeeDetailBinding? = null
-    private val binding get() = _binding!!
-    private lateinit var employee: Employee
-    private lateinit var employeeViewModel: EmployeeViewModel
-    private lateinit var commentViewModel: CommentViewModel
-    private lateinit var commentAdapter: CommentAdapter
-    private lateinit var swipeRefreshLayout: androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+    //--------------------------------------------------------------------------
 
+    // A safe way to use the layout tool, only when the screen is active.
+    //--------------------------------------------------------------------------
+    private val binding get() = _binding!!
+    //--------------------------------------------------------------------------
+
+
+    //--------------------------------------------------------------------------
+    private lateinit var employee: Employee
+    //--------------------------------------------------------------------------
+
+
+    //--------------------------------------------------------------------------
+    private lateinit var employeeViewModel: EmployeeViewModel
+    //--------------------------------------------------------------------------
+
+
+    //--------------------------------------------------------------------------
+    private lateinit var commentViewModel: CommentViewModel
+    //--------------------------------------------------------------------------
+
+
+    //--------------------------------------------------------------------------
+    private lateinit var commentAdapter: CommentAdapter
+    //--------------------------------------------------------------------------
+
+
+    //--------------------------------------------------------------------------
+    private lateinit var swipeRefreshLayout: androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+    //--------------------------------------------------------------------------
+
+
+    //--------------------------------------------------------------------------
     companion object {
         private const val ARG_EMPLOYEE = "employee"
 
@@ -43,9 +74,14 @@ class EmployeeDetailFragment : Fragment() {
             return fragment
         }
     }
+    //--------------------------------------------------------------------------
 
+
+    //--------------------------------------------------------------------------
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Gets the employee info from the bag, if there is one.
         arguments?.let {
             employee = it.getParcelable(ARG_EMPLOYEE)!!
         }
@@ -53,11 +89,17 @@ class EmployeeDetailFragment : Fragment() {
         val commentRepository = CommentRepository(requireContext())
         val employeeViewModelFactory = EmployeeViewModelFactory(employeeRepository)
         val commentViewModelFactory = CommentViewModelFactory(commentRepository)
+
+        // Gets the employee data helper ready.
         employeeViewModel =
             ViewModelProvider(this, employeeViewModelFactory)[EmployeeViewModel::class.java]
+        // Gets the comment data helper ready.
         commentViewModel =
             ViewModelProvider(this, commentViewModelFactory)[CommentViewModel::class.java]
     }
+    //--------------------------------------------------------------------------
+
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -78,7 +120,10 @@ class EmployeeDetailFragment : Fragment() {
         binding.designationText.text = "Designation: ${employee.designation}"
         binding.salaryText.text = "Salary: ${employee.salary}"
 
+        // Sets up the tool to show comments in a list.
         commentAdapter = CommentAdapter()
+
+        // Arranges the comment list to scroll up and down.
         binding.commentsRecyclerView.layoutManager = LinearLayoutManager(context)
         binding.commentsRecyclerView.adapter = commentAdapter
 
@@ -88,26 +133,36 @@ class EmployeeDetailFragment : Fragment() {
             commentViewModel.fetchComments(employee.id) // Trigger refresh
         }
 
+
+        // Watches for changes in comment data and updates the screen.
+        //--------------------------------------------------------------------------
         commentViewModel.comments.observe(viewLifecycleOwner) { resource ->
             when (resource) {
                 is ApiThreeState.Loading -> {
+                    // Shows a spinning circle while comments load.
                     binding.commentsProgressBar.visibility = View.VISIBLE
                     binding.commentsErrorText.visibility = View.GONE
                     swipeRefreshLayout.isRefreshing = true // Show refresh indicator
                 }
 
                 is ApiThreeState.Success -> {
+                    // Hides the spinning circle and error message when comments load.
                     binding.commentsProgressBar.visibility = View.GONE
                     binding.commentsErrorText.visibility = View.GONE
+                    // Updates the comment list with new data
                     commentAdapter.submitList(resource.data)
-                    swipeRefreshLayout.isRefreshing = false // Stop refresh indicator
+                    // Stops the refresh spinning circle.
+                    swipeRefreshLayout.isRefreshing = false
                 }
 
                 is ApiThreeState.Error -> {
+                    // Hides the spinning circle and shows an error message.
                     binding.commentsProgressBar.visibility = View.GONE
                     binding.commentsErrorText.visibility = View.VISIBLE
                     binding.commentsErrorText.text = resource.message
-//                    Toast.makeText(context, "Error Code: ${resource.code}", Toast.LENGTH_SHORT).show()
+                    // This was a popup to show error code, but it’s turned off now.
+                    // Toast.makeText(context, "Error Code: ${resource.code}", Toast.LENGTH_SHORT).show()
+                    // Shows a popup if there’s an error, with a retry button.
                     CommonDialog.show(
                         context = requireContext(),
                         iconRes = R.drawable.ic_launcher_foreground,
@@ -115,26 +170,42 @@ class EmployeeDetailFragment : Fragment() {
                         text = "Failed to load comments. Retry? ${resource.message}",
                         okButtonText = "Retry",
                         cancelButtonText = null, // Single button example
-                        iconBgColor = Color.RED,
-                        isCancelable = false,
-                        onOkClick = { commentViewModel.fetchComments(employee.id) },
-                        onCancelClick = null
+                        iconBgColor = Color.RED, // Makes the icon background red.
+                        isCancelable = false, // Stops users from closing by tapping outside.
+                        onOkClick = {
+                            // Tries to load comments again.
+                            commentViewModel.fetchComments(employee.id)
+                        },
+                        onCancelClick = null // Does nothing if canceled (not shown).
                     )
-                    swipeRefreshLayout.isRefreshing = false // Stop refresh indicator
+
+                    // Stops the refresh spinning circle.
+                    swipeRefreshLayout.isRefreshing = false
                 }
             }
         }
+        //--------------------------------------------------------------------------
 
+
+        // Closes this screen and goes back when the close button is clicked.
+        //--------------------------------------------------------------------------
         binding.closeButton.setOnClickListener {
             // Corrected to use parentFragmentManager.popBackStack()
             parentFragmentManager.popBackStack()
         }
+        //--------------------------------------------------------------------------
 
+
+        // Gets the comments for this employee when the screen opens.
         commentViewModel.fetchComments(employee.id)
     }
 
+
+    //--------------------------------------------------------------------------
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
+
+    //--------------------------------------------------------------------------
 }
